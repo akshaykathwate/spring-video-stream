@@ -34,9 +34,22 @@ const VideoUpload = () => {
   }
 
   function handleForm(formEvent) {
-    if (!selectedFile) {
-      toast.error("Please select a file..!!");
+    if (!selectedFile && !meta.title && !meta.description) {
+      toast.error(
+        "Please provide a file, title, and description before submitting."
+      );
+    } else {
+      if (!selectedFile) {
+        toast.error("Please select a file..!!");
+      }
+      if (!meta.title) {
+        toast.error("Please Enter a title..!!");
+      }
+      if (!meta.description) {
+        toast.error("Please Enter a description..!!");
+      }
     }
+
     formEvent.preventDefault();
     saveVideotoServer(selectedFile, meta);
   }
@@ -164,7 +177,7 @@ const VideoUpload = () => {
               className="flex items-center"
               onClick={resetForm}
             >
-             <GrPowerReset className="" size={18} />
+              <GrPowerReset className="" size={18} />
             </Button>
           </div>
         </form>

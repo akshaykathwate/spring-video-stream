@@ -5,53 +5,53 @@ import "./App.css";
 import VideoUpload from "./components/VideoUpload";
 
 function App() {
-  let videoId = "590d7f63-23a3-411f-9fb2-cae378b64b14";
+  const videoId = "590d7f63-23a3-411f-9fb2-cae378b64b14";
 
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark" || false
   );
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    setDarkMode((prev) => !prev);
     localStorage.setItem("theme", !darkMode ? "dark" : "light");
   };
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
   return (
-    <div className="flex flex-col items-center space-y-5 justify-center py-10 relative bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div className="flex flex-col items-center space-y-6 justify-center py-10 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
       <button
         onClick={toggleDarkMode}
-        className="absolute top-4 right-4 p-2 rounded-full shadow-md bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+        className="absolute top-4 right-4 p-3 rounded-full shadow-md bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:scale-110 transition-transform"
         aria-label="Toggle Dark Mode"
       >
-        {darkMode ? <MdOutlineLightMode size={24} /> : <MdDarkMode size={24} />}
+        {darkMode ? <MdOutlineLightMode size={28} /> : <MdDarkMode size={28} />}
       </button>
 
-      <h1 className="text-2xl  font-bold text-gray-900 dark:text-gray-100">
-        Video Streaming Application
+      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 text-center">
+        🎥 Video Streaming Application
       </h1>
-      <div className="flex justify-evenly w-screen">
-        <div className=" flex flex-col ">
-          <h2 className="text-gray-900 text-2xl font-semibold text-center dark:text-emerald-400 mt-5
-            "> Playing Videos
+
+      <div className="flex flex-wrap justify-center items-start gap-10 w-full px-5">
+        <div className="flex flex-col items-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-emerald-400 mb-4">
+            Now Playing
           </h2>
-          <video
-            src={`http://localhost:8080/api/v1/videos/stream/${videoId}`}
-            controls
-            style={{ width: 500, height: 400 }}
-          ></video>
+          <div className="shadow-lg rounded-lg overflow-hidden">
+            <video
+              src={`http://localhost:8080/api/v1/videos/stream/range/${videoId}`}
+              controls
+              className="w-[300px] sm:w-[500px] h-[200px] sm:h-[400px] bg-black"
+            />
+          </div>
         </div>
+
         <VideoUpload />
       </div>
 
-      <Toaster />
+      <Toaster position="top-center" reverseOrder={false} />
     </div>
   );
 }
