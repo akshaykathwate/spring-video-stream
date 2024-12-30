@@ -1,10 +1,12 @@
 package com.stream.app.controllers;
 
+import com.stream.app.AppConstants;
 import com.stream.app.Service.VideoService;
 import com.stream.app.entities.Video;
 import com.stream.app.payload.CustomMessage;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -108,15 +110,19 @@ public class VideoController{
         String[] ranges = range.replace("bytes=","").split("-");
         rangeStart=Long.parseLong(ranges[0]);
 
-        if(ranges.length>1){
-            rangeEnd=Long.parseLong(ranges[1]);
-        }else{
-            rangeEnd = filelength-1;
+        rangeEnd= rangeStart+ AppConstants.CHUNK_SIZE-1;
+        if(rangeEnd >= filelength){
+            rangeEnd = filelength;
         }
-
-        if(rangeEnd > filelength-1){
-            rangeEnd =  filelength-1;
-        }
+//        if(ranges.length>1){
+//            rangeEnd=Long.parseLong(ranges[1]);
+//        }else{
+//            rangeEnd = filelength-1;
+//        }
+//
+//        if(rangeEnd > filelength-1){
+//            rangeEnd =  filelength-1;
+//        }
 
         InputStream inputStream;
 
@@ -127,25 +133,28 @@ public class VideoController{
         try{
             inputStream = Files.newInputStream(path);
             inputStream.skip(rangeStart);
+
+            long contentLength = rangeEnd -rangeStart+1;
+
+            byte[] data = new byte[(int) contentLength];
+            int read = inputStream.read(data,0, data.length);
+            System.out.println("Read (_Read number of Bytes..._)"+read);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Range","bytes "+rangeStart+"-"+rangeEnd+"/"+filelength);
+            headers.add("Cache-Control","no-cache,no-store,must-revalidate");
+            headers.add("Pragma","no-cache");
+            headers.add("Expires","0");
+            headers.add("X-Content-Type-Options","nosniff");
+            headers.setContentLength(contentLength);
+            return ResponseEntity
+                    .status(HttpStatus.PARTIAL_CONTENT)
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(new ByteArrayResource(data));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        long contentLength = rangeEnd -rangeStart+1;
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Range","bytes "+rangeStart+"-"+rangeEnd+"/"+filelength);
-        headers.add("Cache-Control","no-cache,no-store,must-revalidate");
-        headers.add("Pragma","no-cache");
-        headers.add("Expires","0");
-        headers.add("X-Content-Type-Options","nosniff");
-        headers.setContentLength(contentLength);
-
-        return ResponseEntity
-                .status(HttpStatus.PARTIAL_CONTENT)
-                .headers(headers)
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(new InputStreamResource(inputStream));
-      }
-
-
+    }
 }
