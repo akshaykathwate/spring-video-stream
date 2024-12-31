@@ -37,7 +37,7 @@ public class VideoController{
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description
-    ) {
+    ){
         Video video = new Video();
         video.setTitle(title);
         video.setDescription(description);
@@ -157,4 +157,5 @@ public class VideoController{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 }

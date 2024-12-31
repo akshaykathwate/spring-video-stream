@@ -34,24 +34,30 @@ const VideoUpload = () => {
   }
 
   function handleForm(formEvent) {
-    if (!selectedFile && !meta.title && !meta.description) {
+    formEvent.preventDefault();
+
+    let valid = true;
+
+    if (!selectedFile) {
+      toast.error("Please select a file..!!");
+      valid = false;
+    }
+    if (!meta.title) {
+      toast.error("Please Enter a title..!!");
+      valid = false;
+    }
+    if (!meta.description) {
+      toast.error("Please Enter a description..!!");
+      valid = false;
+    }
+
+    if (valid) {
+      saveVideotoServer(selectedFile, meta);
+    } else {
       toast.error(
         "Please provide a file, title, and description before submitting."
       );
-    } else {
-      if (!selectedFile) {
-        toast.error("Please select a file..!!");
-      }
-      if (!meta.title) {
-        toast.error("Please Enter a title..!!");
-      }
-      if (!meta.description) {
-        toast.error("Please Enter a description..!!");
-      }
     }
-
-    formEvent.preventDefault();
-    saveVideotoServer(selectedFile, meta);
   }
 
   function resetForm() {
@@ -89,7 +95,7 @@ const VideoUpload = () => {
       resetForm();
     } catch (error) {
       setMessage("Upload failed. Please try again.");
-      toast.error(message);
+      toast.error("Upload failed. Please try again.");
       setuploading(false);
     }
   }
@@ -97,7 +103,7 @@ const VideoUpload = () => {
   return (
     <div className="text-slate-100 flex flex-col items-center justify-center">
       <Card className="max-w-md w-full p-5">
-        <h2 className="text-2xl font-semibold text-center text-emerald-400 mb-6">
+        <h2 className="text-2xl font-semibold text-center text-slate-950 dark:text-emerald-400 mb-6">
           Upload Your Video
         </h2>
         <form
