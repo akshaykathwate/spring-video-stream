@@ -14,7 +14,7 @@ class SpringStreamBackendApplicationTests {
 
 	@Test
 	void testProcessVideo() {
-		String output = videoService.processVideo("f29e23c8-b5f8-442c-8d1c-cbb7b8613771");
+		String output = videoService.processVideo("ab38838f-5fe8-49b6-b7d1-5b3e022ca863");
 		System.out.println("HLS Output Directory: " + output);
 	}
 }

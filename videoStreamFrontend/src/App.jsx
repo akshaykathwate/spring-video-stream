@@ -1,58 +1,55 @@
-import { useEffect, useState } from "react";
-import { Toaster } from "react-hot-toast";
-import { MdDarkMode, MdOutlineLightMode } from "react-icons/md";
-import "./App.css";
+// App.jsx
+import React, { useState } from "react";
+import { Toaster,toast } from "react-hot-toast";
+import VideoPlayer from "./components/VideoPlayer";
 import VideoUpload from "./components/VideoUpload";
+import { Button, TextInput } from "flowbite-react";
+import "./App.css";
 
 function App() {
-  const videoId = "590d7f63-23a3-411f-9fb2-cae378b64b14";
+  const [videoId, setVideoId] = useState("f6e21144-c462-459b-af96-1cde95621710");
+  const [fieldValue, setFieldValue] = useState("");
 
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark" || false
-  );
-
-  const toggleDarkMode = () => {
-    setDarkMode((prev) => !prev);
-    localStorage.setItem("theme", !darkMode ? "dark" : "light");
+  const handlePlayVideo = () => {
+    if (fieldValue.trim()) {
+      setVideoId(fieldValue);
+    } else {
+      toast.error("Please enter a valid video ID.");
+    }
   };
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
-
   return (
-    <div className="flex flex-col items-center space-y-6 justify-center py-10 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
-      <button
-        onClick={toggleDarkMode}
-        className="absolute top-4 right-4 p-3 rounded-full shadow-md bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:scale-110 transition-transform"
-        aria-label="Toggle Dark Mode"
-      >
-        {darkMode ? <MdOutlineLightMode size={28} /> : <MdDarkMode size={28} />}
-      </button>
+    <>
+      <Toaster />
+      <div className="flex flex-col items-center space-y-9 py-9">
+        <h1 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100">
+          Video Streaming App
+        </h1>
 
-      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 text-center">
-        🎥 Video Streaming Application
-      </h1>
-
-      <div className="flex flex-wrap justify-center items-start gap-10 w-full px-5">
-        <div className="flex flex-col items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-emerald-400 mb-4">
-            Now Playing
-          </h2>
-          <div className="shadow-lg rounded-lg overflow-hidden">
-            <video
-              src={`http://localhost:8080/api/v1/videos/stream/range/${videoId}`}
-              controls
-              className="w-[300px] sm:w-[500px] h-[200px] sm:h-[400px] bg-black"
+        <div className="flex mt-14 w-full space-x-4 justify-around">
+          <div className="w-1/3">
+            <h2 className="text-lg font-semibold text-center  mb-4 dark:text-white">Playing Video</h2>
+            <VideoPlayer
+              src={`http://localhost:8080/api/v1/videos/${videoId}/master.m3u8`}
             />
+          </div>
+          <div className="w-1/3">
+            <VideoUpload />
           </div>
         </div>
 
-        <VideoUpload />
+        <div className="my-4 flex space-x-4 items-center">
+          <TextInput
+            placeholder="Enter video ID here"
+            name="video_id_field"
+            onChange={(e) => setFieldValue(e.target.value)}
+            className="w-2/3"
+          />
+          <Button onClick={handlePlayVideo} className="w-1/3">
+            Play
+          </Button>
+        </div>
       </div>
-
-      <Toaster position="top-center" reverseOrder={false} />
-    </div>
+    </>
   );
 }
 

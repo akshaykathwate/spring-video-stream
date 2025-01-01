@@ -5,6 +5,7 @@ import com.stream.app.entities.Video;
 import com.stream.app.payload.CustomMessage;
 import com.stream.app.Service.VideoService;
 import lombok.experimental.Delegate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
@@ -27,13 +28,17 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/videos")
-@CrossOrigin("http://localhost:5173 ")
+@CrossOrigin("*")
 public class VideoController {
+
     private VideoService videoService;
 
     public VideoController(VideoService videoService) {
         this.videoService = videoService;
     }
+
+    @Value("${files.video.hsl}")
+    private String HSL_DIR;
 
     @PostMapping
     public ResponseEntity<?> create(@RequestParam("file") MultipartFile file, @RequestParam("title") String title, @RequestParam("description") String description) {
@@ -48,7 +53,7 @@ public class VideoController {
         if (savedVideo != null) {
             return ResponseEntity.status(HttpStatus.OK).body(video);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomMessage.builder().message("Video not uploaded ").success(false).build());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Video not uploaded ");
         }
     }
 
@@ -58,8 +63,7 @@ public class VideoController {
     }
 
     // stream video :
-//    http://localhost:8080/api/v1/videos/stream/35212512
-
+//    http://localhost:8080/api/v1/videos/stream/{videoId}
     @GetMapping("/stream/{videoId}")
     public ResponseEntity<Resource> stream(@PathVariable String videoId) {
 
@@ -70,37 +74,24 @@ public class VideoController {
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
-
-
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType)).body(resource);
-
-
     }
-
 
     @GetMapping("/stream/range/{videoId}")
     public ResponseEntity<Resource> streamVideoRange(@PathVariable String videoId, @RequestHeader(value = "Range", required = false) String range) {
         System.out.println(range);
-        //
 
         Video video = videoService.get(videoId);
         Path path = Paths.get(video.getFilePath());
-
         Resource resource = new FileSystemResource(path);
-
         String contentType = video.getContentType();
-
         if (contentType == null) {
             contentType = "application/octet-stream";
-
         }
-
         long fileLength = path.toFile().length();
-
         if (range == null) {
             return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType)).body(resource);
         }
-
         long rangeStart;
         long rangeEnd;
 
@@ -112,7 +103,6 @@ public class VideoController {
         if (rangeEnd >= fileLength) {
             rangeEnd = fileLength - 1;
         }
-
 //        if (ranges.length > 1) {
 //            rangeEnd = Long.parseLong(ranges[1]);
 //        } else {
@@ -122,7 +112,6 @@ public class VideoController {
 //        if (rangeEnd > fileLength - 1) {
 //            rangeEnd = fileLength - 1;
 //        }
-
         System.out.println("range start : " + rangeStart);
         System.out.println("range end : " + rangeEnd);
         InputStream inputStream;
@@ -157,14 +146,11 @@ public class VideoController {
     //serve hls playlist
     //master.m2u8 file
 
-    @Value("${file.video.hsl}")
-    private String HSL_DIR;
-
     @GetMapping("/{videoId}/master.m3u8")
     public ResponseEntity<Resource> serverMasterFile(
             @PathVariable String videoId
     ) {
-//        creating path
+    //  creating path
         Path path = Paths.get(HSL_DIR, videoId, "master.m3u8");
         System.out.println(path);
         if (!Files.exists(path)) {
@@ -183,16 +169,13 @@ public class VideoController {
     public ResponseEntity<Resource> serveSegments(
             @PathVariable String videoId,
             @PathVariable String segment
-    ) {
-
+    ){
         // create path for segment
         Path path = Paths.get(HSL_DIR, videoId, segment + ".ts");
         if (!Files.exists(path)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
         Resource resource = new FileSystemResource(path);
-
         return ResponseEntity
                 .ok()
                 .header(
